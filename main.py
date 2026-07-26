@@ -315,6 +315,10 @@ def main():
 
                         mouse.double_click()
 
+                    elif gesture_name == "RIGHT_CLICK":
+
+                        mouse.right_click()
+
                     elif gesture_name == "DRAG":
 
                         mouse.drag()
