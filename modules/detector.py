@@ -29,6 +29,32 @@ from mediapipe.tasks.python import vision
 
 class HandDetector:
 
+    # =============================
+    # CAMERA AUTO-SELECTION
+    # =============================
+
+    def _get_best_camera_index(self, max_devices=5):
+        """
+        Scans camera indices and returns the highest-numbered one
+        that opens successfully. External USB webcams almost always
+        enumerate after the built-in laptop camera (index 0), so the
+        highest working index is treated as the external device.
+        """
+
+        available = []
+
+        for i in range(max_devices):
+
+            cap = cv2.VideoCapture(i, cv2.CAP_DSHOW)
+
+            if cap.isOpened():
+                available.append(i)
+                cap.release()
+
+        if not available:
+            return 0
+
+        return max(available)
 
     def __init__(self):
 
@@ -107,8 +133,11 @@ class HandDetector:
         # =============================
 
 
-        self.cap = cv2.VideoCapture(0)
+        camera_index = self._get_best_camera_index()
 
+        self.cap = cv2.VideoCapture(camera_index, cv2.CAP_DSHOW)
+
+        print(f"[Camera] Using camera index {camera_index}")
 
 
         if not self.cap.isOpened():
@@ -226,24 +255,6 @@ class HandDetector:
         detected = bool(
             results.hand_landmarks
         )
-
-
-
-        # print once per second only
-
-        current_time = time.time()
-
-
-        if detected and current_time - self.last_print_time > 1:
-
-
-            print(
-                "[AI] Hand detected"
-            )
-
-
-            self.last_print_time = current_time
-
 
 
         self.last_detection = detected

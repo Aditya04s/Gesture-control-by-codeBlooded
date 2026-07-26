@@ -140,6 +140,7 @@ def main():
                     entertainment.reset()
 
                 menu_active = False
+                previous_time = time.time()
 
                 print("MODE SELECTED:", current_mode)
 
