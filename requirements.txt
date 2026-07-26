@@ -1,0 +1,14 @@
+# AI Gesture Experience - Core Dependencies
+opencv-python==5.0.0.93
+opencv-contrib-python==5.0.0.93
+mediapipe==0.10.35
+numpy==2.5.1
+PyAutoGUI==0.9.54
+pygame==2.6.1
+sounddevice==0.5.5
+
+# UI, Plotting, and Utility Dependencies
+matplotlib==3.11.0
+Pillow==12.3.0
+rich
+requests

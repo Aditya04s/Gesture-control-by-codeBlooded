@@ -1,0 +1,273 @@
+"""
+detector.py
+---------------------------------
+AI Gesture Experience
+
+MediaPipe Tasks Hand Detector
+
+Features:
+- MediaPipe Tasks API ONLY
+- Webcam handling
+- Hand landmark detection
+- Stable tracking
+- Production path handling
+
+Author: Shane
+"""
+
+
+import cv2
+import mediapipe as mp
+import os
+import time
+
+
+from mediapipe.tasks import python
+from mediapipe.tasks.python import vision
+
+
+
+class HandDetector:
+
+
+    def __init__(self):
+
+
+        # =============================
+        # MODEL PATH
+        # =============================
+
+
+        project_root = os.path.dirname(
+            os.path.dirname(
+                os.path.abspath(__file__)
+            )
+        )
+
+
+        self.model_path = os.path.join(
+            project_root,
+            "models",
+            "hand_landmarker.task"
+        )
+
+
+
+        if not os.path.exists(self.model_path):
+
+            raise FileNotFoundError(
+                f"Hand model not found:\n{self.model_path}"
+            )
+
+
+
+        # =============================
+        # MEDIAPIPE HAND MODEL
+        # =============================
+
+
+        base_options = python.BaseOptions(
+            model_asset_path=self.model_path
+        )
+
+
+        options = vision.HandLandmarkerOptions(
+
+            base_options=base_options,
+
+            num_hands=1,
+
+
+            min_hand_detection_confidence=0.6,
+
+            min_hand_presence_confidence=0.6,
+
+            min_tracking_confidence=0.7,
+
+
+            running_mode=vision.RunningMode.VIDEO
+
+        )
+
+
+
+        self.detector = vision.HandLandmarker.create_from_options(
+            options
+        )
+
+
+        print(
+            "[AI] Hand Landmarker loaded"
+        )
+
+
+
+        # =============================
+        # CAMERA
+        # =============================
+
+
+        self.cap = cv2.VideoCapture(0)
+
+
+
+        if not self.cap.isOpened():
+
+            raise RuntimeError(
+                "Camera failed to open"
+            )
+
+
+
+        # Resolution
+
+        self.cap.set(
+            cv2.CAP_PROP_FRAME_WIDTH,
+            1280
+        )
+
+
+        self.cap.set(
+            cv2.CAP_PROP_FRAME_HEIGHT,
+            720
+        )
+
+
+
+        # FPS
+
+        self.cap.set(
+            cv2.CAP_PROP_FPS,
+            60
+        )
+
+
+
+        actual_width = int(
+            self.cap.get(
+                cv2.CAP_PROP_FRAME_WIDTH
+            )
+        )
+
+
+        actual_height = int(
+            self.cap.get(
+                cv2.CAP_PROP_FRAME_HEIGHT
+            )
+        )
+
+
+        actual_fps = self.cap.get(
+            cv2.CAP_PROP_FPS
+        )
+
+
+
+        print(
+            f"[Camera] {actual_width}x{actual_height} @ {actual_fps} FPS"
+        )
+
+
+
+        # =============================
+        # DEBUG CONTROL
+        # =============================
+
+
+        self.last_detection = False
+
+        self.last_print_time = 0
+
+
+
+
+
+    # =============================
+    # HAND DETECTION
+    # =============================
+
+
+    def detect(
+        self,
+        frame,
+        timestamp
+    ):
+
+
+        # BGR -> RGB
+
+        rgb_frame = cv2.cvtColor(
+            frame,
+            cv2.COLOR_BGR2RGB
+        )
+
+
+
+        mp_image = mp.Image(
+
+            image_format=mp.ImageFormat.SRGB,
+
+            data=rgb_frame
+
+        )
+
+
+
+        results = self.detector.detect_for_video(
+
+            mp_image,
+
+            timestamp
+
+        )
+
+
+
+        detected = bool(
+            results.hand_landmarks
+        )
+
+
+
+        # print once per second only
+
+        current_time = time.time()
+
+
+        if detected and current_time - self.last_print_time > 1:
+
+
+            print(
+                "[AI] Hand detected"
+            )
+
+
+            self.last_print_time = current_time
+
+
+
+        self.last_detection = detected
+
+
+
+        return results
+
+
+
+
+
+    # =============================
+    # RELEASE
+    # =============================
+
+
+    def release(self):
+
+
+        if self.cap.isOpened():
+
+            self.cap.release()
+
+
+
+        self.detector.close()
