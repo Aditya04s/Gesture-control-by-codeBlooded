@@ -200,7 +200,7 @@ class ModeMenu:
         # =============================
 
 
-        if finger_count in [1,2,3]:
+        if finger_count in [1,2]:
 
 
             if self.last_count != finger_count:

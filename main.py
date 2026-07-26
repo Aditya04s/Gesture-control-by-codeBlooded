@@ -27,7 +27,7 @@ from modules.pose import PoseDetector
 
 from modules.menu import ModeMenu
 from modes.entertainment import EntertainmentMode
-
+from modules.smart_context import SmartContextManager # new
 
 
 def main():
@@ -46,6 +46,8 @@ def main():
 
     mouse = MouseController()
 
+    context_manager = SmartContextManager()
+
     ui = UI()
 
     worker = BackgroundWorker()
@@ -59,7 +61,7 @@ def main():
     shot_manager = ScreenshotManager(worker, mouse)
 
     scroll_manager = ScrollManager(mouse)
-
+    
     # =============================
     # MODE SYSTEM
     # =============================
@@ -231,45 +233,70 @@ def main():
             # =============================
             # PROFESSIONAL MODE
             # =============================
-
             if current_mode == 0:
 
                 gesture_name = gesture.recognize(hand)
 
-                if gesture_name == "CURSOR":
+                handled = context_manager.intercept(gesture_name, hand)
 
-                    mouse.move(hand)
+                if handled:
 
-                elif gesture_name == "PINCH":
-
-                    mouse.click()
-
-                elif gesture_name == "DOUBLE_CLICK":
-
-                    mouse.double_click()
-
-                elif gesture_name == "DRAG":
-
-                    mouse.drag()
-                    mouse.move(hand)
-
-                elif gesture_name == "SCREENSHOT":
-
-                    if screenshot_hold_start is None:
-
-                        screenshot_hold_start = time.time()
-
-                    elif (
-                        time.time() - screenshot_hold_start
-                        >= SCREENSHOT_HOLD_TIME
-                    ):
-
-                        shot_manager.trigger()
+                    screenshot_hold_start = None
 
                 else:
 
-                    screenshot_hold_start = None
-                    mouse.release()
+                    is_scroll = (gesture_name == "SCROLL")
+
+                    scroll_manager.update(is_scroll, hand)
+
+                    if gesture_name == "CURSOR":
+
+                        mouse.move(hand)
+
+                    elif gesture_name == "PINCH":
+
+                        mouse.click()
+
+                    elif gesture_name == "DOUBLE_CLICK":
+
+                        mouse.double_click()
+
+                    elif gesture_name == "DRAG":
+
+                        mouse.drag()
+                        mouse.move(hand)
+
+                    elif gesture_name == "SCROLL":
+
+                        pass  # already handled above by scroll_manager.update()
+
+                    elif gesture_name == "SCREENSHOT":
+
+                        if screenshot_hold_start is None:
+
+                            screenshot_hold_start = time.time()
+
+                        elif (
+                            time.time() - screenshot_hold_start
+                            >= SCREENSHOT_HOLD_TIME
+                        ):
+
+                            shot_manager.trigger()
+
+                    else:
+
+                        screenshot_hold_start = None
+                        mouse.release()
+
+                cv2.putText(
+                    frame,
+                    f"CONTEXT: {context_manager.current_profile}",
+                    (20, 70),
+                    cv2.FONT_HERSHEY_DUPLEX,
+                    0.8,
+                    (0, 200, 255),
+                    2,
+                )
 
             else:
 
@@ -281,7 +308,6 @@ def main():
             mouse.release()
 
             back_timer = None
-
         # =============================
         # FPS
         # =============================
