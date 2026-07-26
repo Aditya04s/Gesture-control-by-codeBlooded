@@ -19,9 +19,15 @@ class MouseController:
         # Retrieve the monitor's pixel dimensions
         self.screen_w, self.screen_h = pyautogui.size()
 
-        # NEW: Active Control Region (ACR) Configurations
-        self.margin_x = 0.15  # 15% horizontal margin (Left & Right)
-        self.margin_y = 0.15  # 15% vertical margin (Top & Bottom)
+        # OLD:
+        # self.margin_x = 0.15
+        # self.margin_y = 0.15
+
+        # NEW: independent margin per edge
+        self.margin_left = 0.15
+        self.margin_right = 0.15
+        self.margin_top = 0.15
+        self.margin_bottom = 0.08   # smaller = less downward reach needed
 
         # Thread communication variables
         self.target_x = None
@@ -41,10 +47,10 @@ class MouseController:
         index_tip = hand_landmarks[8]
 
         # 1. Define the active tracking boundaries (0.0 to 1.0 space)
-        active_x_start = self.margin_x
-        active_x_end = 1.0 - self.margin_x
-        active_y_start = self.margin_y
-        active_y_end = 1.0 - self.margin_y
+        active_x_start = self.margin_left
+        active_x_end = 1.0 - self.margin_right
+        active_y_start = self.margin_top
+        active_y_end = 1.0 - self.margin_bottom
 
         # 2. Normalize the coordinates strictly within the ACR
         mapped_x = (index_tip.x - active_x_start) / (active_x_end - active_x_start)
