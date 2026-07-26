@@ -29,6 +29,30 @@ from mediapipe.tasks.python import vision
 
 class HandDetector:
 
+    def _get_best_camera_index(self, max_devices=5):
+        """
+        Scans camera indices and returns the highest one that opens.
+        If only the built-in camera (index 0) exists, this returns 0 —
+        identical to your current hardcoded behavior. If an external
+        webcam is plugged in, it enumerates at a higher index and gets
+        picked automatically instead.
+        """
+
+        available = []
+
+        for i in range(max_devices):
+
+            cap = cv2.VideoCapture(i)
+
+            if cap.isOpened():
+                available.append(i)
+
+            cap.release()
+
+        if not available:
+            return 0
+
+        return max(available)
 
     def __init__(self):
 
@@ -107,7 +131,11 @@ class HandDetector:
         # =============================
 
 
-        self.cap = cv2.VideoCapture(0)
+        # self.cap = cv2.VideoCapture(0) 
+
+        camera_index = self._get_best_camera_index()
+
+        self.cap = cv2.VideoCapture(camera_index)
 
 
 
@@ -231,18 +259,18 @@ class HandDetector:
 
         # print once per second only
 
-        current_time = time.time()
+        # current_time = time.time()
 
 
-        if detected and current_time - self.last_print_time > 1:
+        # if detected and current_time - self.last_print_time > 1:
 
 
-            print(
-                "[AI] Hand detected"
-            )
+        #     print(
+        #         "[AI] Hand detected"
+        #     )
 
 
-            self.last_print_time = current_time
+        #     self.last_print_time = current_time
 
 
 
