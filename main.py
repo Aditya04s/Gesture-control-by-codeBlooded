@@ -152,6 +152,8 @@ def main():
 
         finger_count = 0
 
+        confidence = 0
+
         if menu_active or current_mode in [0, 1]:
 
             results = detector.detect(frame, timestamp)
@@ -166,6 +168,9 @@ def main():
                     hand
                 )
 
+                # Pull the model's real detection confidence for this hand
+                if results.handedness:
+                    confidence = results.handedness[0][0].score * 100
         # =============================
         # MENU
         # =============================
@@ -414,8 +419,8 @@ def main():
             ui.draw(
                 frame,
                 fps,
-                "GESTURE",
-                100,
+                gesture_name,
+                confidence,
                 "PROFESSIONAL",
             )
 

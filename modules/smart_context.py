@@ -63,6 +63,7 @@ class SmartContextManager:
             else:
                 self.current_profile = "NORMAL"
                 
+            # print(f"[DEBUG] Window title: '{title}' -> Profile: {self.current_profile}")
             time.sleep(0.5)
 
     def intercept(self, gesture_name, hand_landmarks):
@@ -92,11 +93,11 @@ class SmartContextManager:
         # ==========================================
         # PROFILE: PDF / DOCUMENT READING
         # ==========================================
-        elif self.current_profile == "PDF":
-            # Hijack Scroll -> Zoom In/Out
-            if gesture_name == "SCROLL":
-                self._handle_pdf_zoom(hand_landmarks)
-                return True
+            elif self.current_profile == "PDF":
+            # Hijack Drag -> Zoom In/Out (upward = zoom in, downward = zoom out)
+                if gesture_name == "DRAG":
+                    self._handle_pdf_zoom(hand_landmarks)
+                    return True
 
         # If not a smart profile, or an unrelated gesture, wave it through
         self._reset_state()
@@ -133,7 +134,8 @@ class SmartContextManager:
             self.baseline_y = current_y
 
     def _handle_pdf_zoom(self, hand_landmarks):
-        """Simulates holding Ctrl while scrolling to zoom documents."""
+        """Uses Ctrl+Plus / Ctrl+Minus to zoom, since these work regardless
+        of where the OS mouse cursor physically is (unlike scroll-wheel zoom)."""
         # Use stable palm center Y
         palm_y = sum([hand_landmarks[i].y for i in [0, 5, 9, 13, 17]]) / 5
         
@@ -145,12 +147,10 @@ class SmartContextManager:
         delta_y = self.baseline_y - palm_y
         
         if abs(delta_y) > (self.dead_zone / 2): # Slightly more sensitive
-            pyautogui.keyDown('ctrl')
             if delta_y > 0:
-                pyautogui.scroll(300)  # Zoom In
+                pyautogui.hotkey('ctrl', '+')  # Zoom In
             else:
-                pyautogui.scroll(-300) # Zoom Out
-            pyautogui.keyUp('ctrl')
+                pyautogui.hotkey('ctrl', '-')  # Zoom Out
             self.baseline_y = palm_y
 
     def _reset_state(self):

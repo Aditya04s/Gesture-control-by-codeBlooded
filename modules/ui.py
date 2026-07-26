@@ -41,7 +41,7 @@ class UI:
 
         cv2.putText(
             frame,
-            "AI GESTURE EXPERIENCE",
+            "Control GESTURE EXPERIENCE",
             (30, 45),
             cv2.FONT_HERSHEY_DUPLEX,
             0.8,
