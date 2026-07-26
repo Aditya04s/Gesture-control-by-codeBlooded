@@ -27,7 +27,7 @@ class MouseController:
         self.margin_left = 0.15
         self.margin_right = 0.15
         self.margin_top = 0.15
-        self.margin_bottom = 0.08   # smaller = less downward reach needed
+        self.margin_bottom = 0.30   # smaller = less downward reach needed
 
         # Thread communication variables
         self.target_x = None
@@ -73,6 +73,11 @@ class MouseController:
         """Triggers a rapid double-click."""
         if self.target_x is not None and self.target_y is not None:
             pyautogui.doubleClick(self.target_x, self.target_y)
+
+    def right_click(self):
+        """Triggers a virtual secondary (right) click."""
+        if self.target_x is not None and self.target_y is not None:
+            pyautogui.click(self.target_x, self.target_y, button="right")
 
     def drag(self):
         """Fires the OS mouse-down event once to initiate a drag."""

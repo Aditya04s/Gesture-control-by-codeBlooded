@@ -11,6 +11,8 @@ class GestureRecognizer:
     def __init__(self):
         # Ratios based on dynamic palm size to ensure distance robustness
         self.pinch_threshold = 0.50       # INCREASED: Makes it much easier to detect the pinch
+        self.right_click_threshold = 0.50
+        self.right_require_release = False
         self.thumb_extension_ratio = 0.45 # Min horizontal spread for an extended thumb
         
         # Click & Drag State Machine Variables
@@ -30,6 +32,7 @@ class GestureRecognizer:
             self.pinch_start_time = None
             self.drag_active = False
             self.require_release = False
+            self.right_require_release = False
             return "NO HAND"
 
         # 1. CALCULATE PALM SCALE (Index MCP to Pinky MCP)
@@ -53,6 +56,21 @@ class GestureRecognizer:
         # 4. MEASURE THUMB TO INDEX TIP DISTANCE (For Pinching)
         thumb_index_dist = self._get_distance(smoothed_landmarks[4], smoothed_landmarks[8])
         normalized_pinch = thumb_index_dist / palm_width
+
+        # --- RIGHT CLICK CHECK (Thumb + Pinky pinch, other 3 fingers up) ---
+        thumb_pinky_dist = self._get_distance(smoothed_landmarks[4], smoothed_landmarks[20])
+        normalized_right_pinch = thumb_pinky_dist / palm_width
+        is_right_pinching = normalized_right_pinch < self.right_click_threshold
+
+        right_click_shape = index_straight and middle_straight and ring_straight
+
+        if right_click_shape and is_right_pinching:
+            if not self.right_require_release:
+                self.right_require_release = True
+                return "RIGHT_CLICK"
+            return "UNKNOWN"
+        elif not is_right_pinching:
+            self.right_require_release = False
 
         # =====================================================================
         # GESTURE CLASSIFICATION MATRIX - 4 (Anatomy & Timing Optimized)

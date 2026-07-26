@@ -29,6 +29,7 @@ from mediapipe.tasks.python import vision
 
 class HandDetector:
 
+<<<<<<< HEAD
     # =============================
     # CAMERA AUTO-SELECTION
     # =============================
@@ -39,17 +40,35 @@ class HandDetector:
         that opens successfully. External USB webcams almost always
         enumerate after the built-in laptop camera (index 0), so the
         highest working index is treated as the external device.
+=======
+    def _get_best_camera_index(self, max_devices=5):
+        """
+        Scans camera indices and returns the highest one that opens.
+        If only the built-in camera (index 0) exists, this returns 0 —
+        identical to your current hardcoded behavior. If an external
+        webcam is plugged in, it enumerates at a higher index and gets
+        picked automatically instead.
+>>>>>>> feature-gesture
         """
 
         available = []
 
         for i in range(max_devices):
 
+<<<<<<< HEAD
             cap = cv2.VideoCapture(i, cv2.CAP_DSHOW)
 
             if cap.isOpened():
                 available.append(i)
                 cap.release()
+=======
+            cap = cv2.VideoCapture(i)
+
+            if cap.isOpened():
+                available.append(i)
+
+            cap.release()
+>>>>>>> feature-gesture
 
         if not available:
             return 0
@@ -133,7 +152,15 @@ class HandDetector:
         # =============================
 
 
+<<<<<<< HEAD
         camera_index = self._get_best_camera_index()
+=======
+        # self.cap = cv2.VideoCapture(0) 
+
+        camera_index = self._get_best_camera_index()
+
+        self.cap = cv2.VideoCapture(camera_index)
+>>>>>>> feature-gesture
 
         self.cap = cv2.VideoCapture(camera_index, cv2.CAP_DSHOW)
 
@@ -257,6 +284,27 @@ class HandDetector:
         )
 
 
+<<<<<<< HEAD
+=======
+
+        # print once per second only
+
+        # current_time = time.time()
+
+
+        # if detected and current_time - self.last_print_time > 1:
+
+
+        #     print(
+        #         "[AI] Hand detected"
+        #     )
+
+
+        #     self.last_print_time = current_time
+
+
+
+>>>>>>> feature-gesture
         self.last_detection = detected
 
 

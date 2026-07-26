@@ -9,6 +9,7 @@ Author: Shane
 
 import cv2
 import time
+import numpy as np
 
 from modules.mode_controller import ModeController
 from modules.detector import HandDetector
@@ -28,7 +29,37 @@ from modules.pose import PoseDetector
 from modules.menu import ModeMenu
 from modes.entertainment import EntertainmentMode
 from modules.smart_context import SmartContextManager # new
+from modules.window_lock import AspectRatioLock # new
 
+def letterbox_frame(frame, target_w, target_h):
+    """
+    Resizes 'frame' to fit inside a (target_w x target_h) window while
+    preserving its original aspect ratio. Adds black bars on whichever
+    side is needed instead of stretching/squishing the content.
+    """
+
+    h, w = frame.shape[:2]
+
+    src_aspect = w / h
+    target_aspect = target_w / target_h
+
+    if target_aspect > src_aspect:
+        new_h = target_h
+        new_w = int(new_h * src_aspect)
+    else:
+        new_w = target_w
+        new_h = int(new_w / src_aspect)
+
+    resized = cv2.resize(frame, (new_w, new_h))
+
+    canvas = np.zeros((target_h, target_w, 3), dtype=np.uint8)
+
+    x_offset = (target_w - new_w) // 2
+    y_offset = (target_h - new_h) // 2
+
+    canvas[y_offset:y_offset + new_h, x_offset:x_offset + new_w] = resized
+
+    return canvas
 
 def main():
 
@@ -83,7 +114,20 @@ def main():
     screenshot_hold_start = None
     SCREENSHOT_HOLD_TIME = 0.5
 
-    window_name = "AI Gesture Experience"
+    window_name = "Gesture Control Experience"
+
+    FIXED_WIDTH = 1280
+    FIXED_HEIGHT = 720
+
+    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(window_name, FIXED_WIDTH, FIXED_HEIGHT)
+
+    # The native OS window must actually exist before we can find its
+    # handle, so force one frame through before hooking it.
+    cv2.imshow(window_name, np.zeros((FIXED_HEIGHT, FIXED_WIDTH, 3), dtype=np.uint8))
+    cv2.waitKey(1)
+
+    aspect_lock = AspectRatioLock(window_name, FIXED_WIDTH, FIXED_HEIGHT)
 
     # =============================
     # MAIN LOOP
@@ -146,7 +190,17 @@ def main():
 
             mode_controller.draw(frame)
 
-            cv2.imshow(window_name, frame)
+            # cv2.imshow(window_name, frame)  # replace
+
+            win_rect = cv2.getWindowImageRect(window_name)
+            win_w, win_h = win_rect[2], win_rect[3]
+
+            if win_w > 0 and win_h > 0:
+                display_frame = letterbox_frame(frame, win_w, win_h)
+            else:
+                display_frame = frame
+
+            cv2.imshow(window_name, display_frame)            
 
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
@@ -262,6 +316,10 @@ def main():
 
                         mouse.double_click()
 
+                    elif gesture_name == "RIGHT_CLICK":
+
+                        mouse.right_click()
+
                     elif gesture_name == "DRAG":
 
                         mouse.drag()
@@ -373,7 +431,17 @@ def main():
                 2,
             )
 
-        cv2.imshow(window_name, frame)
+        # cv2.imshow(window_name, frame)  # replace
+
+        win_rect = cv2.getWindowImageRect(window_name)
+        win_w, win_h = win_rect[2], win_rect[3]
+
+        if win_w > 0 and win_h > 0:
+            display_frame = letterbox_frame(frame, win_w, win_h)
+        else:
+            display_frame = frame
+
+        cv2.imshow(window_name, display_frame)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
@@ -389,6 +457,9 @@ def main():
     detector.release()
 
     pose_detector.release()
+
+    aspect_lock.unhook()
+    cv2.destroyAllWindows()
 
     cv2.destroyAllWindows()
 
