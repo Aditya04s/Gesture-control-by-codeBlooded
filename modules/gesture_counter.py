@@ -24,6 +24,30 @@ import math
 
 class GestureCounter:
 
+    # =============================
+    # HAND ORIENTATION
+    # =============================
+
+    def orientation_value(self, landmarks):
+        """
+        Returns a signed value whose sign flips depending on whether
+        the palm or the back of the hand faces the camera. Uses the
+        2D cross product of (wrist -> index MCP) and (wrist -> pinky MCP),
+        which mirrors correctly regardless of left/right hand.
+        """
+
+        wrist = landmarks[0]
+        index_mcp = landmarks[5]
+        pinky_mcp = landmarks[17]
+
+        v1x = index_mcp.x - wrist.x
+        v1y = index_mcp.y - wrist.y
+
+        v2x = pinky_mcp.x - wrist.x
+        v2y = pinky_mcp.y - wrist.y
+
+        return (v1x * v2y) - (v1y * v2x)
+
     def __init__(self):
 
         pass

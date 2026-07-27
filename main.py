@@ -167,6 +167,7 @@ def main():
                 finger_count = counter.count_fingers(
                     hand
                 )
+                # print(f"[DEBUG] orientation: {counter.orientation_value(hand):.4f}")
 
                 # Pull the model's real detection confidence for this hand
                 if results.handedness:
@@ -246,7 +247,7 @@ def main():
 
         if hand is not None:
 
-            if finger_count == 5 and time.time() > palm_cooldown:
+            if finger_count == 4 and counter.orientation_value(hand) < 0 and time.time() > palm_cooldown:
 
                 if back_timer is None:
                     back_timer = time.time()
