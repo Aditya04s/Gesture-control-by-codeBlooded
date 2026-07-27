@@ -135,7 +135,8 @@ class HandDetector:
 
         camera_index = self._get_best_camera_index()
 
-        self.cap = cv2.VideoCapture(camera_index)
+        # self.cap = cv2.VideoCapture(camera_index)
+        self.cap = cv2.VideoCapture(camera_index, cv2.CAP_DSHOW)
 
 
 
@@ -145,7 +146,13 @@ class HandDetector:
                 "Camera failed to open"
             )
 
-
+        # Force MJPG format first — many webcams only expose their
+        # higher resolutions under MJPG, not the default raw format,
+        # and silently fall back to a low resolution otherwise.
+        self.cap.set(
+            cv2.CAP_PROP_FOURCC,
+            cv2.VideoWriter_fourcc(*"MJPG")
+        )
 
         # Resolution
 

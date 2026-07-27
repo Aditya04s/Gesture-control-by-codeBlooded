@@ -129,6 +129,11 @@ def main():
 
     aspect_lock = AspectRatioLock(window_name, FIXED_WIDTH, FIXED_HEIGHT)
 
+    # -----------------------
+
+    # cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+    # cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
     # =============================
     # MAIN LOOP
     # =============================
